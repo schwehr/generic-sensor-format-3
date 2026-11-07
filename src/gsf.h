@@ -1,139 +1,11 @@
 /********************************************************************
  *
- * Module Name : GSF.H
- *
- * Author/Date : J. S. Byrne / Jan 25,  1994
- *
  * Description : This is the header file for the GSF ToolKit
  *
  * Restrictions/Limitations :
  * 1) This library assumes the host computer uses the ASCII character set.
  * 2) This library assumes that the type short is 16 bits, and that the type
  *    int is 32 bits.
- *
- * Change Descriptions :
- * who when      what
- * --- ----      ----
- * jsb 10/17/94  Added support for Reson Seabat data
- * jsb 01/29/95  Added support for em121a nominal depth array
- * jsb 08/14/95  Scale factors and pointers to dynamically allocated memory
- *               now maintained by the library, not the caller.  Consolidated
- *               APIs for sequential and direct access, now both use gsfRead
- *               and gsfWrite. This is version GSF-v01.01.
- * jsb 11/01/95  Completed modifications to indexing to support increase in
- *               GSF file size after initial index file creation.  The size
- *               of the file is now stored in the index file header. Index
- *               files without the expected header are recreated on the first
- *               open. This is still version GSF-v01.01. Also added a unique
- *               sensor specific subrecord for Simrad EM1000.
- * jsb 12/22/95  Added gsfGetMBParams, gsfPutMBParams, gsfIsStarboardPing,
- *               and gsfGetSwathBathyBeamWidths. Also added GSF_APPEND as
- *               a file access mode, and modifed GSF_CREATE access mode so
- *               that files can be updated (read and written). This is GSF
- *               library version GSF-v01.02.
- * hem 08/20/96  Added gsfSingleBeamPing Record structure; added Type III
- *               Seabeam, Echotrac, Bathy200, MGD77, BDB, & NOS HDB subrecord
- *               IDs & subrecords; added gsfStringError.  This is GSF library
- *               version GSF-v1.03.
- * jsb 09/27/96  Added support for SeaBeam with amplitude data.
- * jsb 03/24/97  Added gsfSeaBatIISpecific data structure to replace
- *               the gsfSeaBatSpecific data structure, for the Reson 900x
- *               series sonar systems.  Also added gsfSeaBat8101Specific
- *               data structure for the Reson 8101 series sonar system.
- *               Increased the macro GSF_MAX_RECORD_SIZE from 4k to 32k.
- *               This is GSF library version GSF-v1.04.
- * bac 10/27/97  Added a sensor specific subrecord for the SeaBeam 2112/36.
- * dwc 1/9/98    Added a sensor specific subrecord for the Elac Bottomchart MkII.
- * jsb 9/28/98   Added new navigation error record definition. gsfHVNavigationError.
- *               This record is intended to replace the gsfNavigationError record.
- *               This change addresses CRs: GSF-98-001, and GSF-98-002. Also added
- *               new ping array subrecords: horizontal_error, and vertical_error. This
- *               change address CR: GSF-98-003. These new subrecords are intended to
- *               replace the depth_errror, along_track_error and across_track_error
- *               subrecords. In a future release, new file support for these three
- *               error subrecords will be dropped. This is library version GSF-v1.07.
- * jsb 12/19/98  Added support for em3000. Also increased number of entries available
- *               for processing and sensor parameter records. This is library version
- *               GSF-v1.08.
- * wkm 4/1/99    Added CMP_SASS subrecord for Compressed SASS (BOSDAT) data.  This
- *               subrecord should be used in place of the SASS subrecord (TypeIII).
- *               The original has been left intact so as to not break existing code.
- * jsb 07/20/99  Completed work on GSF version 1.08.  Added new functions gsfGetSwathBathyArrayMinMax,
- *               and gsfLoadDepthScaleFactorAutoOffset in support of signed depth.
- *               This release addresses the following CRs: GSF-99-002, GSF-99-006, GSF-99-007,
- *               GSF-99-008, GSF-99-009, GSF-99-010, GSF-99-011, GSF-99-012,
- * wkm 7/30/99   Updated SASS specific data subrecord to include 'lntens' and renamed
- *               surface_velocity to 'lfreq'.  These are the original SASS data field
- *               names and were requested by NAVO to remane intact.  Added comment block
- *               to document mapping of SASS data fields to GSF.
- * bac 12-22-99  Applications built with GCC that use GSF.DLL require any global data to be explicitly
- *               defined as imported from a DLL.  When this is the case, gsfError gets redefined
- *               as *__imp_gsfError.  gsfError is unchanged for other compilers or static linking with GCC.
- *               Programs built with the GCC and using gsf.dll must define gsf_USE_DLL
- *               (-Dgsf_USE_DLL) when building. This is version GSF_1.10
- * bac 10-24-00  Updated gsfEM3RunTime structure to include data fields from updated
- *               EM series runtime parameter datagram.  Also added an additional check
- *               for the LINUX define of timespec.
- * bac 07-18-01  Added a sensor specific subrecord for the Reson 8100 series of sonars.  Also
- *               made modifications for use with C++ code.  The typedef for each sensor specific
- *               structure has been modfied to have a different name than the element of the SensorSpecific
- *               union.  Also removed the usage of C++ reserved words "class" and "operator".  These
- *               modifications will potentially require some changes to application code.
- * bac 10-12-01  Added a new attitude record definition.  The attitude record provides a method for
- *               logging full time-series attitude measurements in the GSF file, instead of attitude
- *               samples only at ping time.  Each attitude record contains arrays of attitude
- *               measurements for time, roll, pitch, heave and heading.  The number of measurements
- *               is user-definable, but because of the way in which measurement times are stored, a
- *               single attitude record should never contain more than sixty seconds worth of
- *               data.
- * bac 11-09-01  Added motion sensor offsets to the gsfMBOffsets structure.  Added support for these
- *               new offsets in the gsfPutMBParams and gsfGetMBParams functions, so these offsets are
- *               encoded in the process_parameters record.
- * jsb 01-16-02  Added support for Simrad EM120.
- * bac 06-19-03  Added support for bathymetric receive beam time series intensity data (i.e., Simrad
- *               "Seabed image" and Reson "snippets").  Included RWL updates of 12-19-02 for adding
- *               sensor-specific singlebeam information to the MB sensor specific subrecords.
- * bac 12-28-04  Added support for Reson Navisound, EM3000D, EM3002, and EM3002D.  Renumbered
- *               singlebeam subrecord IDs to be less than 256, as previous version did not save
- *               these sensors IDs correctly.  Added beam spacing to Reson 8100 sensor-specific
- *               subrecord.  Added definitions for RTG position types in gsfHVNavigationError record.
- * bac 06-28-06  Added sensor ID for EM121A data received via Kongsberg SIS, mapped to existing
- *               EM3 series sensor specific data structure.  Added __APPLE__ macro definition to
- *               support compile switch steering around definition of struct timespec on MAC OSX.
- *               Changed structure elements of type long to int, for compilation on 64-bit architectures.
- * dhg 09-27-06  Added sensor ID for gsfGeoSwathPlusSpecific data received via GeoSwath interferometric
- *               250 Khz sonar.
- * dhg 10-04-06  Added more sensor specific fields for the GeoSwathPlus interferometric sonar.
- * jsb 07-24-07  GSFv2.07 includes some additional parameters in the imagery sensor specific structure
- *                to support calculating back to the exact original intensity values received from the
- *                sonar.
- * bsl 11-05-07  Added sensor ID and structure for gsfGeoSwathPlusSpecific data received via Klein 5410
- *                bathymetric sidescan sonar.  Also added an imagery sensor specific structure.
- * jsb 11-06-07  Updates to utilize the subrecord size in termining the field size for the array subrecords
- *                that support more than one field size.  Also replaced use of strstr with strcmp in gsfGetMBParams
- *                to resolve potential problem where one keyword name may be fully contained in another.
- * DHG 2008/12/18 Add "VESSEL_TYPE" to Processing Parameters for AUV vs Surface Ship discrimination.
- * mab 02-01-09  Updates to support Reson 7125. Added new subrecord IDs and subrecord definitions for Kongsberg
- *                sonar systems where TWTT and angle are populated from raw range and beam angle datagram. Added
- *                new subrecord definition for EM2000.  Bug fixes in gsfOpen and gsfPercent.
- * mab 06-11-09  Moved GSF_MAX_RECORD_SIZE from 256KB to 512KB to accomodate Reson7125 imagery.
- * jsb 01-14-10  Added new function prototypes to return various status information about the opened GSF file.
- * clb 04-21-11  Changed version from 03.02 to 03.03
- * clb 05-11-11  Changed the value of GSF_NULL_DEPTH_CORRECTOR (STR 19142)
- * clb 05-11-11  Added depth sensor and receiver array offsets to gsfMBOffsets structure
- * clb 05-27-11  Added __MINGW64__ references
- * clb 06-21-11  Added t_gsfEM12Specific structure
- * clb 09-20-11  Added R2Sonic support
- * clb 10-04-11  Added GSF_PARTIAL_RECORD_AT_END_OF_FILE error code
- * clb 11-09-11  Added gsfInitializeMBParams() prototype
- * clb 11-10-11  Changed value of GSF_NULL_DEPTH_CORRECTOR back to 99.99 for backwards compatibility
- * clb 09-13-11  Added check for HAVE_STRUCT_TIMESPEC when defining timespec; updated version to 03.05
- * jhp 02-10-14  Added GSF_SWATH_BATHY_SUBRECORD_SONAR_VERT_UNCERT_ARRAY
- * jhp 03-31-14  Added support for R2Sonic 2020.
- *
- * Classification : Unclassified
- *
- * References : DoDBL Generic Sensor Format Sept. 30, 1993
  *
  * Copyright 2019 Leidos, Inc.
  * There is no charge to use the library, and it may be accessed at:
@@ -142,17 +14,11 @@
  * version 2.1, as published by the Free Software Foundation.  A copy of the LGPL 2.1 license is included
  * with the GSF distribution and is available at: http://opensource.org/licenses/LGPL-2.1.
  *
- * Leidos, Inc. configuration manages GSF, and provides GSF releases. Users are strongly encouraged to
- * communicate change requests and change proposals to Leidos, Inc.
- *
- * This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  ********************************************************************/
 
 #ifndef __GSF_H__
 #define __GSF_H__
 
-/* Get the required standard C library includes */
 #include <stdio.h>
 #include <stdint.h>
 #include <time.h>

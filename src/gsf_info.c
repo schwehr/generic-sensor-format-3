@@ -1,9 +1,5 @@
 /********************************************************************
  *
- * Module Name : gsf_info.c
- *
- * Author/Date : J. S. Byrne / December 2009
- *
  * Description :
  *  This source file contains GSF informational functions that provide
  *   general information or status of contents of the current file.
@@ -16,16 +12,6 @@
  * 3) This library assumes that the type short is 16 bits, and that
  *    the type int is 32 bits.
  *
- *
- * Change Descriptions :
- * who          when      what
- * ---          ----      ----
- * jsb          12-29-09  New
- *
- * Classification : Unclassified
- *
- * References : DoDBL Generic Sensor Format Sept. 30, 1993
- *
  * Copyright 2019 Leidos, Inc.
  * There is no charge to use the library, and it may be accessed at:
  * https://www.leidos.com/products/ocean-marine#gsf
@@ -33,22 +19,12 @@
  * the GNU Lesser General Public License version 2.1, as published by the
  * Free Software Foundation.  A copy of the LGPL 2.1 license is included with
  * the GSF distribution and is avaialbe at: http://opensource.org/licenses/LGPL-2.1.
- *
- * Leidos, Inc. configuration manages GSF, and provides GSF releases. Users are
- * strongly encouraged to communicate change requests and change proposals to Leidos, Inc.
- *
- * This library is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE.
- *
  ********************************************************************/
 
-/* Standard C Library Includes */
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
-/* GSF library interface description */
 #include "gsf.h"
 
 /* Global external data defined in this module */

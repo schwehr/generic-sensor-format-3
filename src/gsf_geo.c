@@ -1,19 +1,7 @@
 /********************************************************************
  *
- * File Name : gsf_geo.c
- *
- * Author/Date : R.K.Wells / 26 Feb 2014
- *
  * Description : Some hopefully useful functions to compute auxiliary
  *               information about points on a ship.
- *
- * Restrictions/Limitations :
- *
- * Change Descriptions :
- *
- * Classification : Unclassified
- *
- * References :
  *
  * Copyright 2019 Leidos, Inc.
  * There is no charge to use the library, and it may be accessed at:
@@ -23,18 +11,10 @@
  * Free Software Foundation.  A copy of the LGPL 2.1 license is included with
  * the GSF distribution and is avaialbe at: http://opensource.org/licenses/LGPL-2.1.
  *
- * Leidos, Inc. configuration manages GSF, and provides GSF releases. Users are
- * strongly encouraged to communicate change requests and change proposals to Leidos, Inc.
- *
- * This library is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE.
  ********************************************************************/
 
-/* Standard C Library Includes */
 #include <math.h>
 
-/* GSF library interface description */
 #include "gsf.h"
 
 /* Global external data defined in this module */

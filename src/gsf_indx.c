@@ -1,9 +1,5 @@
 /********************************************************************
  *
- * Module Name : GSF_INDX.C
- *
- * Author/Date : J. C. Depner / 19 Jan 1995
- *
  * Description : This source file contains the file indexing functions
  *  for the GSF library.
  *
@@ -19,56 +15,6 @@
  *    GSFTMPDIR is defined (as a valid directory) or the /tmp directory is
  *    available.
  *
- * Change Descriptions :
- * who  when      what
- * ---  ----      ----
- * jsb  08/25/95  Consolidated the gsfReadIndex and gsfWriteIndex functions
- *                into gsfRead and gsfWrite.
- * jsb  11/01/95  Completed modifications to indexing to support increase in
- *                GSF file size after initial index file creation.  The size
- *                of the file is now stored in the index file header. Index
- *                files without the expected header are recreated on the first
- *                open.
- * hem  08/20/96  Added #ifdef for percent complete "spinner"; added code to
- *                index single beam pings & summary records.  Changed building
- *                of temporary index files to first try and use the environment
- *                variable GSFTMPDIR & if it is not defined, then use /tmp for
- *                temporary index files used in building an index file.
- *                Removed output of error message from gsfCreateIndex when and
- *                unknown record ID was encountered.
- * hem  10/08/96  Fixed problem with building index files.  The incrementing of
- *                the number of record types was incrementing the wrong pointer
- *                for summary & single beam ping records.  Also added #ifdef to
- *                the end of gsfCreateIndex to stop the blank lines from being
- *                displayed if DISPLAY_SPINNER is not set.
- * jsb  03/29/97  Fixed bug in indexing the swath bathymetry summary record.
- *                Fix made to both Create and Append functions. Indexing the
- *                summary record was added release 1.03.
- * jsb  10/07/98  Added direct access support for new navigation errors record.
- *                 This change made in support of CRs: 98-001, and 98-002.
- * jsb  04/05/00  Updated for consistent use of swap field to ensure that index
- *                 files are portable between big and little endian machines.
- * bac  10-12-01  Added a new attitude record definition.  The attitude record
- *                 provides a method for logging full time-series attitude
- *                 measurements in the GSF file, instead of attitude samples
- *                 only at ping time.  Each attitude record contains arrays of
- *                 attitude measurements for time, roll, pitch, heave and heading.
- *                 The number of measurements is user-definable, but because of
- *                 the way in which measurement times are stored, a single attitude
- *                 record should never contain more than sixty seconds worth of
- *                 data.
- * jsb  01/15/02  Update for Windows.
- * bac  06/28/06  Added J.Depner updates to support a progress callback when
- *                 writing to the index file, as an alternative to the
- *                 DISPLAY_SPINNER printouts.  Replaced references to long types
- *                 with int types, for compilation on 64-bit architectures.
- * clb  05/27/11   added reference to __MINGW64__
- *
- * Classification : Unclassified
- *
- * References : DoDBL Generic Sensor Format Sept. 30, 1993
- *
- *
  * Copyright 2019 Leidos, Inc.
  * There is no charge to use the library, and it may be accessed at:
  * https://www.leidos.com/products/ocean-marine#gsf
@@ -77,16 +23,8 @@
  * Free Software Foundation.  A copy of the LGPL 2.1 license is included with
  * the GSF distribution and is avaialbe at: http://opensource.org/licenses/LGPL-2.1.
  *
- * Leidos, Inc. configuration manages GSF, and provides GSF releases. Users are
- * strongly encouraged to communicate change requests and change proposals to Leidos, Inc.
- *
- * This library is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE.
- *
  ********************************************************************/
 
-/* Standard C Library Includes */
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -103,7 +41,6 @@
     #include <unistd.h>
 #endif
 
-/* GSF library interface description */
 #include "gsf.h"
 #include "gsf_indx.h"
 #include "gsf_ft.h"

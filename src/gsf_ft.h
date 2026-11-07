@@ -1,31 +1,9 @@
 /********************************************************************
  *
- * Module Name : GSF_FT
- *
- * Author/Date : J. S. Byrne / 25 Aug 1995
- *
  * Description : This header file contains the data structure definitions
  *    for the library's internal file table.  These definitions are only
  *    needed by the library, and are not intended to be accessed by any
  *    calling applications.
- *
- *
- * Restrictions/Limitations :
- *
- * Change Descriptions :
- * who  when      what
- * ---  ----      ----
- * jsb  04-16-97  Added integer fields to GSF_FILE_TABLE for major and
- *                 minor version numbers. Changed type of previous_record
- *                 field from fpos_t to long. This was done so we can
- *                 compare file position contained in previous record with
- *                 file position information stored in the index file.
- * bac 06-28-06   Changed structure elements of type long to int, for
- *                 compilation on 64-bit architectures.
- *
- * Classification : Unclassified
- *
- * References :
  *
  * Copyright 2019 Leidos, Inc.
  * There is no charge to use the library, and it may be accessed at:
@@ -34,13 +12,6 @@
  * the GNU Lesser General Public License version 2.1, as published by the
  * Free Software Foundation.  A copy of the LGPL 2.1 license is included with
  * the GSF distribution and is avaialbe at: http://opensource.org/licenses/LGPL-2.1.
- *
- * Leidos, Inc. configuration manages GSF, and provides GSF releases. Users are
- * strongly encouraged to communicate change requests and change proposals to Leidos, Inc.
- *
- * This library is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE.
  *
  ********************************************************************/
 

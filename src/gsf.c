@@ -1,9 +1,5 @@
 /********************************************************************
  *
- * Module Name : GSF
- *
- * Author/Date : J. S. Byrne / 3 May 1994
- *
  * Description : This source file contains the GSF library entry point
  *  functions for accessing multibeam sonar data in a generic byte stream
  *  format.  Each record in these binary files contains an ID and a size,
@@ -17,128 +13,14 @@
  * 2) This library assumes that the type short is 16 bits, and that the type
  *    int is 32 bits.
  *
- * Change Descriptions :
- * who  when      what
- * ---  ----      ----
- * jsb  10-25-94  Added gsfOpenBuffered function call, and call to setvbuf
- *                in gsfOpen to deal with high data rate multibeam data.
- * jsb  08-14-95  Direct and sequential access now work through common
- *                gsfRead and gsfWrite API. All pointers to dynamically
- *                allocated memory are now maintained by the library.
- *                Call this version "GSF-v01.01".
- * jsb  11/01/95  Completed modifications to indexing to support increase in
- *                GSF file size after initial index file creation.  The size
- *                of the file is now stored in the index file header. Index
- *                files without the expected header are recreated on the first
- *                open. This is still version GSF-v01.01. Also added a unique
- *                sensor specific subrecord for Simrad em1000.
- * jsb  12/22/95  Added gsfGetMBParams, gsfPutMBParams, gsfIsStarboardPing,
- *                and gsfGetSwathBathyBeamWidths. Also added GSF_APPEND as
- *                a file access mode, and modifed GSF_CREATE access mode so
- *                that files can be updated (read and written). This is GSF
- *                library version GSF-v01.02.
- * fd   04/15/96  Corrected the internals of gsfIsStarboardPing
- * hem  08/20/96  Added support for single beam pings; added gsfStringError;
- *                fixed 4 byte boundary padding.  This is GSF library
- *                version GSF-v1.03.
- * jsb  10/04/96  Changed fopen argument from "wb" to "a+b" for the GSF_APPEND
- *                access mode.  Also added logic to set file pointer to top prior
- *                to trying to read the GSF header record in gsfOpen/gsfOpenBuffered
- *                when the file access mode is GSF_APPEND.  Replaced use of
- *                numOpenFiles with *handle as argument to gsfRead and gsfWrite
- *                within gsfOpen and gsfOpenBuffered.  This repairs problems which
- *                can occur when a single application is accessing multiple files.
- * jsb  04/18/97  Added GSF version dependancy on approach to padding records out
- *                to four byte boundary. This is required in order to support the
- *                update access modes for versions prior to 1.03.  Replaced use of
- *                fgetpos, fsetpos with ftell, fseek.  This was done so that we can
- *                compair the previous_record field of the file table with addresses
- *                from an index file. Modified gsfStringError so that there is a single
- *                return statement, this was done to eliminate "statement not reached"
- *                compile warnings.
- * bac  10/27/97  Added a case in gsfGetSwathBathyBeamWidths for the Sea Beam 2112/36.
- * dwc 1/9/98     Added a case in gsfGetSwathBathyBeamWidths for the Elac Bottomchart MkII.
- * bac  03/15/98  Added an array subrecord for signal to noise ratio.
- * bac  03/15/98  Added an array subrecord for beam angle forward.
- * jsb  09/28/98  Added support for new navigation error record. Modified gsfPrintError
- *                 to use gsfStringError.
- * wkm  04/01/99  Added case for CmpSass (Compressed SASS) data to set beam widths to 1.0.
- * jsb  04/02/99  Added support for EM3000 series sonar systems.
- * jsb  07/20/99  Completed work on GSF version 1.08.  Added new functions gsfGetSwathBathyArrayMinMax,
- *                and gsfLoadDepthScaleFactorAutoOffset in support of signed depth.
- *                This release addresses the following CRs: GSF-99-002, GSF-99-006, GSF-99-007,
- *                GSF-99-008, GSF-99-009, GSF-99-010, GSF-99-011, GSF-99-012,
- * jsb  04/05/00  Updated so that an application can work with up to GSF_MAX_OPEN_FILES at
- *                a time.  Prior to these updates an application could only open (GSF_MAX_OPEN_FILES-1)
- *                files at a time. Also updated gsfOpen and gsfOpenBuffered to return the correct
- *                error code if a failure occures reading the file header.
- * bac 07-18-01   Made modifications for use with C++ code.  The typedef for each sensor
- *                specific structure has been modified to have a different name than the
- *                element of the SensorSpecific union.  Also removed the useage of C++
- *                reserved words "class" and "operator".  These modifications will potentially
- *                require some changes to application code. Added support for the Reson 8100 series of sonars.
- * bac 10-12-01   Added a new attitude record definition.  The attitude record provides a method for
- *                logging full time-series attitude measurements in the GSF file, instead of attitude
- *                samples only at ping time.  Each attitude record contains arrays of attitude
- *                measurements for time, roll, pitch, heave and heading.  The number of measurements
- *                is user-definable, but because of the way in which measurement times are stored, a
- *                single attitude record should never contain more than sixty seconds worth of
- *                data.
- * bac 11-09-01   Added motion sensor offsets to the gsfMBOffsets structure.  Added support for these
- *                new offsets in the gsfPutMBParams and gsfGetMBParams functions, so these offsets are
- *                encoded in the process_parameters record.
- * jsb 01-21-02   If the fread doesn't complete, rewind the file to the beginning of the current
- *                record, set gsfError to END_OF_FILE, and return -1.  Removed variables that were
- *                not used, fixed return code and gsfError for default case block in gsfGetBeamWidths,
- *                and update strncpy in gsfSetParam and gsfCopyRecords to ensure that the terminating
- *                NULL is copied to the target pointer.
- * bac 06-19-03   Added support for bathymetric receive beam time series intensity data (i.e., Simrad
- *                "Seabed image" and Reson "snippets").  Inlcluded RWL updates of 12-19-02 for adding
- *                sensor-specific singlebeam information to the MB sensor specific subrecords.
- * bac 12-28-04   Added support for EM3000D, EM3002, and EM3002D in gsfGetSwathBathyBeamWidths.  Updated
- *                gsfLoadDepthScaleFactorAutoOffset to vary the offset interval based on precision.
- *                Updated gsfFree to free and set to NULL the quality_flags, vertical_error, horizontal_error,
- *                and brb_inten arrays.  Added vertical_error and horizontal_error processing to gsfCopyRecords.
- * bac 06-28-06   Updated gsfIsStarboardPing to work with EM3000D and EM3002D.  Updated gsfCopyRecords
- *                to copy the hv_nav_error record.  Added  for EM121A data received via Kongsberg SIS.
- *                Replaced references to long types with int types, for compilation on 64-bit architectures.
- * jsb 11-06-07   Updates to utilize the subrecord size in termining the field size for the array subrecords
- *                that support more than one field size.  Also replaced use of strstr with strcmp in gsfGetMBParams
- *                to resolve potential problem where one keyword name may be fully contained in another.
- * DHG 2008/12/18 Add "PLATFORM_TYPE" to Processing Parameters for AUV vs Surface Ship discrimination.
- * mab 02-01-09   Updates to support Reson 7125. Added new subrecord IDs and subrecord definitions for Kongsberg
- *                sonar systems where TWTT and angle are populated from raw range and beam angle datagram. Added
- *                new subrecord definition for EM2000.  Bug fixes in gsfOpen and gsfPercent.
- * clb 05-17-11   Added depth sensor and receiver array offsets to the gsfGetMBParams() and gsfPutMBParams()
- * clb 10-04-11   Added check in gsfUnpackStream() for a partial record at the end of the file
- * clb 10-17-11   Handle all the error processing in gsfOpen() and gsfOpenBuffered() consistently
- * clb 11-09-aa   Added validity checks in gsfPutMBParams(); initialize param structure in gsfGetMBParams();
- *                added gsfInitializeMBParams(); validate handles in functions that use them
- *
- *
- * Classification : Unclassified
- *
- * References : DoDBL Generic Sensor Format Sept. 30, 1993
- *
- *
- * copyright 2019 Leidos, Inc.
- * There is no charge to use the library, and it may be accessed at:
- * https://www.leidos.com/products/ocean-marine#gsf.
+ * Copyright 2019 Leidos, Inc.
  * This library may be redistributed and/or modified under the terms of
  * the GNU Lesser General Public License version 2.1, as published by the
  * Free Software Foundation.  A copy of the LGPL 2.1 license is included with
  * the GSF distribution and is avaialbe at: http://opensource.org/licenses/LGPL-2.1.
  *
- * Leidos, Inc. configuration manages GSF, and provides GSF releases. Users are
- * strongly encouraged to communicate change requests and change proposals to Leidos, Inc.
- *
- * This library is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE.
- *
  ********************************************************************/
 
-/* standard c library includes */
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>

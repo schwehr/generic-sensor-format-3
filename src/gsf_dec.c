@@ -1,9 +1,5 @@
 /********************************************************************
  *
- * Module Name : GSF_DEC.C
- *
- * Author/Date : J. S. Byrne / 3 May 1994
- *
  * Description :
  *  This source file contains the GSF functions for decoding a GSF byte
  *   stream given host data structures containing the data in engineering
@@ -18,79 +14,6 @@
  * 3) This library assumes that the type short is 16 bits, and that
  *    the type int is 32 bits.
  *
- *
- * Change Descriptions :
- * who          when      what
- * ---          ----      ----
- * jsb          10-17-94  Added support for Reson SeaBat data
- * jsb          03-10-95  Modified the ping record structure to contain
- *                        dynamic depth corrector and tide corrector.
- * jsb          09-21-95  Modified so that the scale factor offset is
- *                        subtracted on decode.
- * jsb          11-13-95  Added unique subrecord id for EM1000
- * jsb          03-04-96  Fixed memset bug in DecodeSVP
- * hem          08-20-96  Added gsfDecodeSinglebeam, DecodeSASSSpecific,
- *                        DecodeTypeIIISeaBeamSpecific, DecodeEchotracSpecific,
- *                        DecodeMGD77Specific, DecodeBDBSpecific,
- *                        DecodeNOSHDBSpecific; fixed decoding of SVP latitudes
- *                        and longitudes to use signed values; added skipping
- *                        of unknown subrecords; added code to extract
- *                        sensor id's even if the subrecord has 0 length.
- * jsb          09-27-96  Added support for SeaBeam with amplitude data
- * jsb          03/24/97  Added gsfSeaBatIISpecific data structure to replace
- *                        the gsfSeaBatSpecific data structure, for the Reson 900x
- *                        series sonar systems.  Also added gsfSeaBat8101Specific
- *                        data structure for the Reson 8101 series sonar system.
- * bac          10/27/97  Added DecodeSeaBeam2112Specific to support the Sea Beam
- *                        2112/36 sonar.
- * dwc          1/9/98    Added DecodeElacMkIISpecific to support the Elac
- *                        Bottomchart MkII sonar.
- * jsb          09/28/98  Added gsfDecodeHVNavigationError. This addresses CRs:
- *                        98-001 and 98-002. In responce to NAVO CR: 98-003, added
- *                        support for horizontal_error ping array subrecord.
- * jsb          12/29/98  Added support for Simrad em3000 series sonar systems.
- * wkm          3-30-99   Added DecodeCmpSassSpecific to deal with Compressed SASS data.
- * wkm          8-02-99   Updated DecodeCmpSassSpecific to include lntens (heave) with Compressed SASS data.
- * bac          10-24-00  Updated DecodeEM3Specific to include data fields from updated
- *                        EM series runtime parameter datagram.
- * bac          07-18-01  Added support for the Reson 8100 series of sonars.  Also removed the usage
- *                        of C++ reserved words "class" and "operator".
- * bac          10-12-01  Added a new attitude record definition.  The attitude record provides
- *                        a method for logging full time-series attitude measurements in the GSF
- *                        file, instead of attitude samples only at ping time.  Each attitude
- *                        record contains arrays of attitude measurements for time, roll, pitch,
- *                        heave and heading.  The number of measurements is user-definable, but
- *                        because of the way in which measurement times are stored, a single
- *                        attitude record should never contain more than sixty seconds worth of
- *                        data.
- * jsb          01-16-02  Added support for Simrad EM120, and removed definitions for unused variables.
- * bac          06-19-03  Added support for bathymetric receive beam time series intensity data (i.e., Simrad
- *                        "Seabed image" and Reson "snippets").  Included RWL updates of 12-19-02 for adding
- *                        sensor-specific singlebeam information to the MB sensor specific subrecords.
- * bac          12-28-04  Added support for Navisound singlebeam, EM3000D, EM3002, and EM3002D.  Fixed
- *                        decoding of 1-byte BRB intensity values.  Corrected the decode of Reson
- *                        projector angle.  Added beam_spacing to the gsfReson8100Specific subrecord.
- *                        Updated gsfDecodeSensorParameters and gsfDecodeProcessingParameters to save
- *                        number_parameters correctly in the GSF_FILE_TABLE structure.
- * bac          06-28-06  Added support for EM121A data received via Kongsberg SIS, mapped to existing
- *                        EM3 series sensor specific data structure. Changed all casts to type long to
- *                        casts to type int, for compilation on 64-bit architectures.
- * dhg          10-24-06  Added support for GeoSwathPlus interferometric sonar
- * dhg          11-01-06  Corrected "model_number" and "frequency" for "GeoSwathPlusSpecific" record
- * mab          02-01-09  Updates to support Reson 7125. Added new subrecord IDs and subrecord definitions for Kongsberg
- *                        sonar systems where TWTT and angle are populated from raw range and beam angle datagram. Added
- *                        new subrecord definition for EM2000.  Bug fixes in gsfOpen and gsfPercent.
- * clb          02-25-11  Changed the DecodeBRBIntensity function when bits_per_sample is 12
- * clb          04-06-11  Changes made for DeltaT
- * clb          05-13-11  when decoding a ping, reject it if number of beams <= 0
- * clb          06-21-11  implemented DecodeEM12Specific() function
- * clb          09-20-11  added support for R2Sonic
- * jcd          02-17-12  fixed DecodeQualityFlagsArray to work with num_beams not evenly divisible by 4
- *
- * Classification : Unclassified
- *
- * References : DoDBL Generic Sensor Format Sept. 30, 1993
- *
  * Copyright 2019 Leidos, Inc.
  * There is no charge to use the library, and it may be accessed at:
  * https://www.leidos.com/products/ocean-marine#gsf.
@@ -99,16 +22,8 @@
  * Free Software Foundation.  A copy of the LGPL 2.1 license is included with
  * the GSF distribution and is avaialbe at: http://opensource.org/licenses/LGPL-2.1.
  *
- * Leidos, Inc. configuration manages GSF, and provides GSF releases. Users are
- * strongly encouraged to communicate change requests and change proposals to Leidos, Inc.
- *
- * This library is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE.
- *
  ********************************************************************/
 
-/* Standard C Library Includes */
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -121,7 +36,6 @@
 #include <winsock.h>
 #endif
 
-/* GSF library interface description */
 #include "gsf.h"
 #include "gsf_dec.h"
 

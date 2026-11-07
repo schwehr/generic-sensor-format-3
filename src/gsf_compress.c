@@ -1,9 +1,5 @@
 /********************************************************************
  *
- * Module Name : GSF_COMPRESS
- *
- * Author/Date : Conrad Curry / May 2017
- *
  * Description : This source file contains an implementation of a
  *   compression scheme using a combination of intra-channel decorrelation
  *   and entropy coding of the residual signal.
@@ -12,31 +8,14 @@
  * 1) This library assumes the host computer uses the ASCII character set.
  * 2) This library assumes that the type short is 16 bits, and that the type int is 32 bits.
  *
- * Change Descriptions :
- * who          when      what
- * ---          ----      ----
- * cwc          05-04-17  Initial release.
- *
- *
- * Classification : Unclassified
- *
- * References : DoDBL Generic Sensor Format Sept. 30, 1993
- *
  * There is no charge to use the library, and it may be accessed at:
  * https://www.leidos.com/products/ocean-marine.
  * This library may be redistributed and/or modified under the terms of the GNU Lesser General Public License
  * version 2.1, as published by the Free Software Foundation.  A copy of the LGPL 2.1 license is included
  * with the GSF distribution and is available at: http://opensource.org/licenses/LGPL-2.1.
  *
- * Leidos, Inc. configuration manages GSF, and provides GSF releases. Users are strongly encouraged to
- * communicate change requests and change proposals to Leidos, Inc.
- *
- * This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- *
  ********************************************************************/
 
-/* Standard C Library Includes */
 #include <stdlib.h>
 #include <string.h>
 
@@ -47,7 +26,6 @@
 #include <winsock.h>
 #endif
 
-/* GSF library interface description */
 #include "gsf.h"
 
 /* Compression Format Version Number */
